@@ -1,13 +1,13 @@
-package io.github.mikecornflake.apptimelimiter.ui.more
+package io.github.mikecornflake.apptimelimiter.ui.fragments
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-class MoreViewModel : ViewModel() {
+class LogsViewModel : ViewModel() {
 
     private val _text = MutableLiveData<String>().apply {
-        value = "This is More Fragment"
+        value = "This is logs Fragment"
     }
     val text: LiveData<String> = _text
 }

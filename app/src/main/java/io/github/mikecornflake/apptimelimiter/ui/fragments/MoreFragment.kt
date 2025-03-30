@@ -1,4 +1,4 @@
-package io.github.mikecornflake.apptimelimiter.ui.more
+package io.github.mikecornflake.apptimelimiter.ui.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater

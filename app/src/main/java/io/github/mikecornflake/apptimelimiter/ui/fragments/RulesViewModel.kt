@@ -1,4 +1,4 @@
-package io.github.mikecornflake.apptimelimiter.ui.rules
+package io.github.mikecornflake.apptimelimiter.ui.fragments
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

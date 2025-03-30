@@ -1,4 +1,4 @@
-package io.github.mikecornflake.apptimelimiter.ui.logs
+package io.github.mikecornflake.apptimelimiter.ui.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,11 +7,11 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import io.github.mikecornflake.apptimelimiter.databinding.FragmentLogsBinding
+import io.github.mikecornflake.apptimelimiter.databinding.FragmentHomeBinding
 
-class LogsFragment : Fragment() {
+class HomeFragment : Fragment() {
 
-    private var _binding: FragmentLogsBinding? = null
+    private var _binding: FragmentHomeBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -22,14 +22,14 @@ class LogsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val logsViewModel =
-            ViewModelProvider(this).get(LogsViewModel::class.java)
+        val homeViewModel =
+            ViewModelProvider(this).get(HomeViewModel::class.java)
 
-        _binding = FragmentLogsBinding.inflate(inflater, container, false)
+        _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textLogs
-        logsViewModel.text.observe(viewLifecycleOwner) {
+        val textView: TextView = binding.textHome
+        homeViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
         }
         return root

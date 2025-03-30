@@ -7,25 +7,25 @@
 
     <fragment
         android:id="@+id/navigation_home"
-        android:name="io.github.mikecornflake.apptimelimiter.ui.home.HomeFragment"
+        android:name="io.github.mikecornflake.apptimelimiter.ui.fragments.HomeFragment"
         android:label="@string/title_home"
         tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/navigation_rules"
-        android:name="io.github.mikecornflake.apptimelimiter.ui.rules.RulesFragment"
+        android:name="io.github.mikecornflake.apptimelimiter.ui.fragments.RulesFragment"
         android:label="@string/title_rules"
         tools:layout="@layout/fragment_rules" />
 
     <fragment
         android:id="@+id/navigation_logs"
-        android:name="io.github.mikecornflake.apptimelimiter.ui.logs.LogsFragment"
+        android:name="io.github.mikecornflake.apptimelimiter.ui.fragments.LogsFragment"
         android:label="@string/title_logs"
         tools:layout="@layout/fragment_logs" />
 
     <fragment
         android:id="@+id/navigation_more"
-        android:name="io.github.mikecornflake.apptimelimiter.ui.more.MoreFragment"
+        android:name="io.github.mikecornflake.apptimelimiter.ui.fragments.MoreFragment"
         android:label="@string/title_more"
         tools:layout="@layout/fragment_more" />
 </navigation>
