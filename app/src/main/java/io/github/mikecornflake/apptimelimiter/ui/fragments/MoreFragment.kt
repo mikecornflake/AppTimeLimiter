@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import io.github.mikecornflake.apptimelimiter.databinding.FragmentMoreBinding
+import io.github.mikecornflake.apptimelimiter.settings.SettingsHelper
 
 class MoreFragment : Fragment() {
 
@@ -28,10 +29,11 @@ class MoreFragment : Fragment() {
         _binding = FragmentMoreBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textMore
-        moreViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
+        //add the listener to the button
+        binding.accessibilitySettingsButton.setOnClickListener {
+            SettingsHelper.openAccessibilitySettings(requireContext())
         }
+
         return root
     }
 

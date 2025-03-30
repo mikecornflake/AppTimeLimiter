@@ -1,13 +1,20 @@
 package io.github.mikecornflake.apptimelimiter.ui.fragments
 
 import android.os.Bundle
+import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import io.github.mikecornflake.apptimelimiter.R
 import io.github.mikecornflake.apptimelimiter.databinding.FragmentHomeBinding
+import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
 
@@ -17,22 +24,45 @@ class HomeFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
+    private val homeViewModel: HomeViewModel by viewModels()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val homeViewModel =
-            ViewModelProvider(this).get(HomeViewModel::class.java)
-
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textHome
-        homeViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
+        val appEnabledButton: Button = binding.appEnabledButton
+        val accessibilityStatusText: TextView = binding.accessibilityStatusText
+
+        //Call observeDataStore to watch for changes
+        homeViewModel.observeDataStore(requireContext())
+
+        appEnabledButton.setOnClickListener {
+            homeViewModel.toggleAppEnabled(requireContext())
+            //Call saveState to save to the datastore
+            homeViewModel.saveState(requireContext())
         }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                homeViewModel.uiState.collect { uiState ->
+                    // Update the UI based on the uiState
+                    appEnabledButton.setText(uiState.getApplicationEnabledStateAsText())
+                    accessibilityStatusText.setText(uiState.getAccessibilityServiceStateAsText())
+                }
+            }
+        }
+
         return root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        homeViewModel.updateAccessibilityServiceStatus(requireContext())
+        homeViewModel.loadAppEnabledState(requireContext())
     }
 
     override fun onDestroyView() {

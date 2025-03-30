@@ -11,4 +11,14 @@
     <string name="accessibility_service_explanation">To detect when chosen Apps are in the foreground,
         you need to enable the App Time Limiter Accessibility Service in your device settings.</string>
     <string name="enable_accessibility_service">Enable Accessibility Service</string>
+
+    <string name="enable_application">Enable Application</string>
+    <string name="disable_application">Application is enabled</string>
+    <string name="accessibility_service_enabled">Accessibility Service Enabled</string>
+    <string name="accessibility_service_disabled"><b>Accessibility Service Disabled.</b>
+        \nThis also needs to be enabled before other applications can be monitored.
+        \nClick on the <b>More</b> button at the bottom of the screen</string>
+    <string name="usage_stats_explanation">TODO: Find out what this is</string>
+
+
 </resources>

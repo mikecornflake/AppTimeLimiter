@@ -5,6 +5,19 @@ import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import android.content.Context
+import androidx.compose.ui.test.cancel
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import io.github.mikecornflake.apptimelimiter.settings.SettingsHelper
+import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.collectLatest
 
 class MyAccessibilityService : AccessibilityService() {
 
@@ -12,6 +25,20 @@ class MyAccessibilityService : AccessibilityService() {
     companion object {
         private const val TAG = "AppTimeLimiter:MyAccessibilityService"
         private const val FACEBOOK_PACKAGE = "com.facebook.katana"
+    }
+
+    private var isAppEnabled: Boolean = false
+    private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+    override fun onCreate() {
+        super.onCreate()
+        //get the state from the datastore, and watch it for changes
+        serviceScope.launch{
+            SettingsHelper.getAppEnabledState(applicationContext).collectLatest {
+                isAppEnabled = it
+                Log.d(TAG, "App enabled: $isAppEnabled")
+            }
+        }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
@@ -22,9 +49,9 @@ class MyAccessibilityService : AccessibilityService() {
             val packageName = event.packageName.toString()
             Log.d(TAG, "Package Name: $packageName")
 
-            if (FACEBOOK_PACKAGE == packageName) {
+            if ((isAppEnabled) and (FACEBOOK_PACKAGE == packageName)) {
                 Log.d(TAG, "Facebook is in the foreground!")
-                minimizeFacebook()
+                DoHomeButton()
             }
         }
     }
@@ -46,12 +73,17 @@ class MyAccessibilityService : AccessibilityService() {
         serviceInfo = info
     }
 
-    private fun minimizeFacebook() {
-        Log.d(TAG, "minimizeFacebook")
+    private fun DoHomeButton() {
+        Log.d(TAG, "DoHomeButton")
         val startMain = Intent(Intent.ACTION_MAIN).apply {
             addCategory(Intent.CATEGORY_HOME)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         applicationContext.startActivity(startMain)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        serviceScope.cancel()
     }
 }
