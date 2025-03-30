@@ -3,4 +3,12 @@
     <string name="title_home">Home</string>
     <string name="title_rules">Rules</string>
     <string name="title_logs">Logs</string>
+    <string name="title_more">More</string>
+
+    <string name="accessibility_service_label">App Time Limiter Accessibility Service</string>
+    <string name="accessibility_service_description">This service helps App Time Limiter detect when
+        chosen apps is in the foreground.\\n\\nPress back twice to return to the app.</string>
+    <string name="accessibility_service_explanation">To detect when chosen Apps are in the foreground,
+        you need to enable the App Time Limiter Accessibility Service in your device settings.</string>
+    <string name="enable_accessibility_service">Enable Accessibility Service</string>
 </resources>
