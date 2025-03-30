@@ -8,6 +8,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import io.github.mikecornflake.apptimelimiter.databinding.ActivityMainBinding
+import io.github.mikecornflake.apptimelimiter.settings.SettingsHelper
 
 class MainActivity : AppCompatActivity() {
 
@@ -32,13 +33,13 @@ class MainActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         val appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.navigation_home, R.id.navigation_rules, R.id.navigation_logs
+                R.id.navigation_home, R.id.navigation_rules, R.id.navigation_logs, R.id.navigation_more
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        // Accessibility settings
+        // settings
         settingsHelper = SettingsHelper()
     }
 

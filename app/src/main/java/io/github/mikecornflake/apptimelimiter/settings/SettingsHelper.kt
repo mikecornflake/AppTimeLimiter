@@ -1,4 +1,4 @@
-package io.github.mikecornflake.apptimelimiter
+package io.github.mikecornflake.apptimelimiter.settings
 
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
@@ -6,6 +6,7 @@ import android.content.Intent
 import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
+import io.github.mikecornflake.apptimelimiter.R
 
 class SettingsHelper {
     fun hasAccessibilityPermission(context: Context): Boolean {

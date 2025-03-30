@@ -1,4 +1,4 @@
-package io.github.mikecornflake.apptimelimiter
+package io.github.mikecornflake.apptimelimiter.settings
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
