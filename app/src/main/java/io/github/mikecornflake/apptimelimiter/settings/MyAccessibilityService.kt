@@ -5,19 +5,12 @@ import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
-import android.content.Context
-import androidx.compose.ui.test.cancel
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import io.github.mikecornflake.apptimelimiter.settings.SettingsHelper
-import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.cancel
 
 class MyAccessibilityService : AccessibilityService() {
 
