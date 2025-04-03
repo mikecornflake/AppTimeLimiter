@@ -17,10 +17,12 @@ import androidx.datastore.preferences.core.edit
 import io.github.mikecornflake.apptimelimiter.R
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.Date
 
 object SettingsHelper {
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "app_settings")
     private val APP_ENABLED_KEY = booleanPreferencesKey("app_enabled")
+    var facebook_start_time : Date = Date(0)
 
     fun hasAccessibilityPermission(context: Context): Boolean {
         val accessibilityManager =

@@ -12,8 +12,9 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import io.github.mikecornflake.apptimelimiter.R
 import io.github.mikecornflake.apptimelimiter.databinding.FragmentHomeBinding
+import io.github.mikecornflake.apptimelimiter.settings.SettingsHelper
+import java.util.Date
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
@@ -44,6 +45,8 @@ class HomeFragment : Fragment() {
             homeViewModel.toggleAppEnabled(requireContext())
             //Call saveState to save to the datastore
             homeViewModel.saveState(requireContext())
+
+            SettingsHelper.facebook_start_time=Date(0)
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
