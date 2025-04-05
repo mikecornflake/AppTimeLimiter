@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import io.github.mikecornflake.apptimelimiter.databinding.FragmentLogsBinding
 
-class LogsFragment : Fragment() {
+class LogFragment : Fragment() {
 
     private var _binding: FragmentLogsBinding? = null
 
@@ -22,14 +22,14 @@ class LogsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val logsViewModel =
-            ViewModelProvider(this).get(LogsViewModel::class.java)
+        val logViewModel =
+            ViewModelProvider(this).get(LogViewModel::class.java)
 
         _binding = FragmentLogsBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         val textView: TextView = binding.textLogs
-        logsViewModel.text.observe(viewLifecycleOwner) {
+        logViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
         }
         return root

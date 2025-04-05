@@ -16,7 +16,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavDeepLinkBuilder
 import io.github.mikecornflake.apptimelimiter.R
-import io.github.mikecornflake.apptimelimiter.settings.SettingsHelper
+import io.github.mikecornflake.apptimelimiter.util.SettingsHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

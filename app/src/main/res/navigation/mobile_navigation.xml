@@ -19,7 +19,7 @@
 
     <fragment
         android:id="@+id/navigation_logs"
-        android:name="io.github.mikecornflake.apptimelimiter.ui.fragments.LogsFragment"
+        android:name="io.github.mikecornflake.apptimelimiter.ui.fragments.LogFragment"
         android:label="@string/title_logs"
         tools:layout="@layout/fragment_logs" />
 

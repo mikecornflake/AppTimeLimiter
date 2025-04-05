@@ -3,7 +3,7 @@ package io.github.mikecornflake.apptimelimiter.ui.fragments
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.mikecornflake.apptimelimiter.settings.SettingsHelper
+import io.github.mikecornflake.apptimelimiter.util.SettingsHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

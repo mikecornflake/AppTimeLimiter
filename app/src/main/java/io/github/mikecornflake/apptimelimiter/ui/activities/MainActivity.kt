@@ -10,7 +10,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import io.github.mikecornflake.apptimelimiter.R
 import io.github.mikecornflake.apptimelimiter.databinding.ActivityMainBinding
-import io.github.mikecornflake.apptimelimiter.settings.SettingsHelper
+import io.github.mikecornflake.apptimelimiter.util.SettingsHelper
 
 class MainActivity : AppCompatActivity() {
 

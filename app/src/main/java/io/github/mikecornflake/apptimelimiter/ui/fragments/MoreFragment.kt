@@ -4,11 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import io.github.mikecornflake.apptimelimiter.databinding.FragmentMoreBinding
-import io.github.mikecornflake.apptimelimiter.settings.SettingsHelper
+import io.github.mikecornflake.apptimelimiter.util.SettingsHelper
 
 class MoreFragment : Fragment() {
 

@@ -1,7 +1,6 @@
 package io.github.mikecornflake.apptimelimiter.ui.fragments
 
 import android.os.Bundle
-import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +12,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import io.github.mikecornflake.apptimelimiter.databinding.FragmentHomeBinding
-import io.github.mikecornflake.apptimelimiter.settings.SettingsHelper
+import io.github.mikecornflake.apptimelimiter.util.SettingsHelper
 import java.util.Date
 import kotlinx.coroutines.launch
 
