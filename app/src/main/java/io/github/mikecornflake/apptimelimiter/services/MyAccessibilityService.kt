@@ -3,16 +3,17 @@ package io.github.mikecornflake.apptimelimiter.services
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
+import android.content.pm.PackageManager.NameNotFoundException
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import io.github.mikecornflake.apptimelimiter.settings.SettingsHelper
+import java.util.Date
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.cancel
-import java.util.Date
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class MyAccessibilityService : AccessibilityService() {
 
@@ -49,17 +50,21 @@ class MyAccessibilityService : AccessibilityService() {
             val packageName = event.packageName.toString()
             Log.d(TAG, "Package Name: $packageName")
 
-            if (FACEBOOK_PACKAGE == packageName) {
+            // Excluding Android System, track the apps most likely to be activated by User
+            if (packageName != "com.android.systemui") {
+                SettingsHelper.active_package = packageName
+                SettingsHelper.active_application = getApplicationName(packageName)
+            }
+
+            if (packageName == FACEBOOK_PACKAGE) {
                 if (SettingsHelper.facebook_start_time.time==0L) {
                     SettingsHelper.facebook_start_time=Date()
                     MyForegroundService.instance?.setNotification("Facebook has started")
                 }
-            } else {
-                if (packageName != "com.android.systemui") {
+            } else if (packageName != "com.android.systemui") {
                     // SettingsHelper.facebook_start_time=Date(0)
                     MyForegroundService.instance?.setNotification("Active package = $packageName")
                 }
-            }
 
             if ((isAppEnabled) and (FACEBOOK_PACKAGE == packageName)) {
                 Log.d(TAG, "Facebook is in the foreground!")
@@ -98,6 +103,21 @@ class MyAccessibilityService : AccessibilityService() {
         val startForeground = Intent(applicationContext, MyForegroundService::class.java)
         applicationContext.startForegroundService(startForeground)
     }
+
+    private fun getApplicationName(packageName: String):String {
+        val pm = applicationContext.packageManager
+        val ai = try {
+            pm.getApplicationInfo(this.packageName, 0)
+        } catch (e: NameNotFoundException) {
+            null
+        }
+
+        val applicationName =
+            (if (ai != null) pm.getApplicationLabel(ai) else packageName) as String
+
+        return applicationName
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()

@@ -12,24 +12,25 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavDeepLinkBuilder
 import io.github.mikecornflake.apptimelimiter.R
-import io.github.mikecornflake.apptimelimiter.services.MyAccessibilityService.Companion
 import io.github.mikecornflake.apptimelimiter.settings.SettingsHelper
-import java.util.Date
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.util.Date
+import java.util.concurrent.TimeUnit
+import android.widget.Toast
 
 class MyForegroundService : Service() {
     companion object {
         private const val TAG = "AppTimeLimiter:MyForegroundService"
+        private const val FACEBOOK_PACKAGE = "com.facebook.katana"
         var instance: MyForegroundService? = null
     }
 
@@ -56,17 +57,12 @@ class MyForegroundService : Service() {
             stopSelf()
         }
 
-        handler = Handler(Looper.getMainLooper())
 
         // Create the notification channel (required for Android 8.0+)
         createNotificationChannel()
 
         // Build the notification
-        val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("App Time Limiter")
-            .setContentText("Monitoring app usage")
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Replace with your icon
-            .build()
+        val notification: Notification = createNotification() // NEW: Use createNotification
 
         // Start the service as a foreground service
         try{
@@ -76,6 +72,11 @@ class MyForegroundService : Service() {
             stopSelf()
         }
 
+        // The Timer will be running in the main thread.
+        handler = Handler(Looper.getMainLooper())
+
+        // Start the timer using the Runnable interface.
+        // The Anonymous function here is assigned to onRun()
         timerRunnable = Runnable {
             doTimer()
 
@@ -103,11 +104,13 @@ class MyForegroundService : Service() {
         super.onDestroy()
         instance = null
 
+        // kill the Timer
         handler.removeCallbacks(timerRunnable)
 
         // stop listening for application state change
         serviceScope.cancel()
 
+        // And bring us to a stop
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
@@ -118,17 +121,20 @@ class MyForegroundService : Service() {
 
     // This is called by a Runnable every 30 seconds
     private fun doTimer() {
-        var content:String = "Facebook is not running (doTimer)"
+        val app:String = SettingsHelper.active_application
+        var content:String
+
+        if (app=="") content="Unknown active app" else content = app
 
         // 30-second notification update code goes here
-        if (SettingsHelper.facebook_start_time.time!=0L) {
+        if ((SettingsHelper.facebook_start_time.time!=0L) && (SettingsHelper.active_package == FACEBOOK_PACKAGE)) {
             val now = Date()
             val differenceInMillis = now.time - SettingsHelper.facebook_start_time.time
             val ageInSeconds = TimeUnit.MILLISECONDS.toSeconds(differenceInMillis)
 
             content = "Facebook has been running for $ageInSeconds seconds"
 
-            if ((ageInSeconds < 4*60) && (ageInSeconds < 5*60)) {
+            if ((ageInSeconds > 4*60) && (ageInSeconds < 5*60)) {
                 content = "Facebook will be closed shortly"
 
                 doToast(content)
@@ -174,12 +180,23 @@ class MyForegroundService : Service() {
         ).show()
     }
 
-    fun setNotification(content : String) {
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+    // NEW: Creates the notification with the pending intent
+    private fun createNotification(content: String = "Monitoring app usage"): Notification {
+        val pendingIntent = NavDeepLinkBuilder(this)
+            .setGraph(R.navigation.mobile_navigation)
+            .setDestination(R.id.navigation_home)
+            .createPendingIntent()
+
+        return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("App Time Limiter")
             .setContentText(content)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_avg_time_border_24px)
+            .setContentIntent(pendingIntent)
             .build()
+    }
+
+    fun setNotification(content : String) {
+        val notification = createNotification(content)
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(NOTIFICATION_ID, notification)
     }
