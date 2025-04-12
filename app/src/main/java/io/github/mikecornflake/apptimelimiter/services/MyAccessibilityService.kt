@@ -4,29 +4,38 @@ import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
 import io.github.mikecornflake.apptimelimiter.database.AppDatabase
 import io.github.mikecornflake.apptimelimiter.database.entities.ActiveSession
-import io.github.mikecornflake.apptimelimiter.database.entities.Package
 import io.github.mikecornflake.apptimelimiter.database.entities.Log
+import io.github.mikecornflake.apptimelimiter.database.entities.Package
 import io.github.mikecornflake.apptimelimiter.util.SettingsHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
 import kotlinx.coroutines.flow.firstOrNull
+import java.util.Timer
+import java.util.TimerTask
 
 class MyAccessibilityService : AccessibilityService() {
 
-    // TODO: Rewrite to be more app agnostic
     companion object {
-        private const val TAG = "AppTimeLimiter:MyAccessibilityService"
+        private const val TAG = "MyAccessibilityService"
+        // Add known problematic launchers to this set
+        private val KNOWN_PROBLEM_LAUNCHERS = setOf("com.oppo.launcher")
     }
 
     private lateinit var database: AppDatabase
+    private var isProcessingEvent = false
+    private var lastEventJob: Job? = null
+    private val processingDelay = 500L // Adjust delay as needed
 
-//    private var isAppEnabled: Boolean = false
-//    private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    // Periodically check for the foreground app
+    private var foregroundAppCheckTimer: Timer? = null
+    private val foregroundAppCheckPeriod = 2000L // Check every 2 seconds (adjust as needed)
 
     override fun onCreate() {
         super.onCreate()
@@ -36,100 +45,78 @@ class MyAccessibilityService : AccessibilityService() {
         startMyForegroundService()
 
         database = AppDatabase.getDatabase(applicationContext)
-
-
-//        //get the state from the datastore, and watch it for changes
-//        serviceScope.launch{
-//            SettingsHelper.getAppEnabledState(applicationContext).collectLatest {
-//                isAppEnabled = it
-//                Log.d(TAG, "App enabled: $isAppEnabled")
-//            }
-//        }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         val eventType = event.eventType
-        android.util.Log.d(TAG, "onAccessibilityEvent: $eventType")
+        android.util.Log.d(TAG, "onAccessibilityEvent: eventType=$eventType")
+        processEvent(event)
+    }
 
-        if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+    private fun processEvent(event: AccessibilityEvent) {
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             val packageName = event.packageName?.toString() ?: return
-            if (packageName == "com.android.systemui" || packageName == this.packageName) {
-                return
+
+            // Check if the event is from a known problematic launcher
+            if (KNOWN_PROBLEM_LAUNCHERS.contains(packageName)) {
+                android.util.Log.d(TAG, "onAccessibilityEvent: Skipping known problematic launcher event: $packageName")
+                return // Skip processing this event
             }
 
-            val now = Instant.now().toEpochMilli()
+            processPackage(packageName)
+        }
+    }
 
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    // Get the Package or create it if it doesn't exist
-                    var packageItem = database.packageDao().getPackage(packageName).firstOrNull()
+    private fun processPackage(packageName: String) {
+        android.util.Log.d(TAG, "processPackage: packageName=$packageName")
 
-                    if (packageItem == null) {
-                        // Package doesn't exist, so create it
-                        packageItem = Package(
-                            packageName = packageName,
-                            name = SettingsHelper.getAppName(applicationContext, packageName)
-                        )
-                        database.packageDao().insert(packageItem)
-                    }
+        val now = Instant.now().toEpochMilli()
+        lastEventJob?.cancel()
+        lastEventJob = CoroutineScope(Dispatchers.IO).launch {
+            if (isProcessingEvent) {
+                delay(processingDelay) // Wait for processing to finish
+            }
 
-                    // Check for an existing active session
-                    val existingSession = database.activeSessionDao().getAllActiveSessions().firstOrNull()?.firstOrNull()
+            isProcessingEvent = true
+            try {
+                // Find the correct packageId.  Cache all values in Table:Package using atomic transaction
+                val packageItem = Package(
+                    packageName = packageName,
+                    name = SettingsHelper.getAppName(applicationContext, packageName)
+                )
+                val savedPackage = database.packageDao().insertIfNotExist(packageItem)!!
 
-                    // Create a new log entry
-                    val logEntry = Log(
-                        packageId = packageItem.packageId,
-                        startTime = now,
-                        endTime = now
-                    )
+                // Check for an existing active session
+                val existingSession = database.activeSessionDao().getAllActiveSessions().firstOrNull()?.firstOrNull()
 
-                    database.logDao().insert(logEntry)
-
-                    // Clear any previous active session
+                // Has the active session changed?
+                if (existingSession == null || existingSession.packageId != savedPackage.packageId) {
+                    // If there was an existing session, we need to log it.
                     if (existingSession != null) {
-                        database.activeSessionDao().delete(existingSession)
+                        // Create a new log entry
+                        val logEntry = Log(
+                            packageId = existingSession.packageId,
+                            startTime = existingSession.startTime,
+                            endTime = now,
+                            duration = now - existingSession.startTime
+                        )
+                        database.logDao().insertLog(logEntry)
                     }
 
-                    // Create a new active session
+                    // Create a new active session, using atomic transaction
                     val newActiveSession = ActiveSession(
-                        packageId = packageItem.packageId,
+                        packageId = savedPackage.packageId,
                         startTime = now
                     )
-                    database.activeSessionDao().insert(newActiveSession)
-
+                    database.activeSessionDao().insertNewActiveSession(newActiveSession, existingSession)
                     android.util.Log.i("ACCESSIBILITY", "New active session started for: $packageName")
-                } catch (e: Exception) {
-                    android.util.Log.e("ACCESSIBILITY", "Error processing session", e)
                 }
+            } catch (e: Exception) {
+                android.util.Log.e("ACCESSIBILITY", "Error processing session", e)
+            } finally {
+                isProcessingEvent = false // Allow processing of new events
             }
         }
-
-
-//        if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-//            val packageName = event.packageName.toString()
-//            Log.d(TAG, "Package Name: $packageName")
-//
-//            // Excluding Android System, track the apps most likely to be activated by User
-//            if (packageName != "com.android.systemui") {
-//                SettingsHelper.active_package = packageName
-//                SettingsHelper.active_application = getApplicationName(packageName)
-//            }
-//
-//            if (packageName == FACEBOOK_PACKAGE) {
-//                if (SettingsHelper.facebook_start_time.time==0L) {
-//                    SettingsHelper.facebook_start_time=Date()
-//                    MyForegroundService.instance?.setNotification("Facebook has started")
-//                }
-//            } else if (packageName != "com.android.systemui") {
-//                    // SettingsHelper.facebook_start_time=Date(0)
-//                    MyForegroundService.instance?.setNotification("Active package = $packageName")
-//                }
-//
-//            if ((isAppEnabled) and (FACEBOOK_PACKAGE == packageName)) {
-//                Log.d(TAG, "Facebook is in the foreground!")
-//                doHomeButton()
-//            }
-//        }
     }
 
     override fun onInterrupt() {
@@ -145,8 +132,33 @@ class MyAccessibilityService : AccessibilityService() {
             feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
             notificationTimeout = 100
         }
-
         serviceInfo = info
+        startForegroundAppCheckTimer()
+    }
+
+    private fun startForegroundAppCheckTimer() {
+        android.util.Log.d(TAG, "onServiceConnected")
+
+        foregroundAppCheckTimer = Timer()
+        foregroundAppCheckTimer?.schedule(object : TimerTask() {
+            override fun run() {
+                val currentPackage = getForegroundAppPackageName()
+                if (currentPackage != null) {
+                    processPackage(currentPackage)
+                }
+            }
+        }, foregroundAppCheckPeriod, foregroundAppCheckPeriod)
+    }
+
+    private fun stopForegroundAppCheckTimer() {
+        foregroundAppCheckTimer?.cancel()
+        foregroundAppCheckTimer = null
+    }
+
+    private fun getForegroundAppPackageName(): String? {
+        val window: AccessibilityNodeInfo? = rootInActiveWindow
+        val packageName = window?.packageName?.toString()
+        return packageName
     }
 
     private fun doHomeButton() {
@@ -158,13 +170,13 @@ class MyAccessibilityService : AccessibilityService() {
         applicationContext.startActivity(startMain)
     }
 
-    private fun startMyForegroundService(){
+    private fun startMyForegroundService() {
         val startForeground = Intent(applicationContext, MyForegroundService::class.java)
         applicationContext.startForegroundService(startForeground)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        //serviceScope.cancel()
+        stopForegroundAppCheckTimer()
     }
 }

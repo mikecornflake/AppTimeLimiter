@@ -22,9 +22,6 @@ class MoreFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val moreViewModel =
-            ViewModelProvider(this).get(MoreViewModel::class.java)
-
         _binding = FragmentMoreBinding.inflate(inflater, container, false)
         val root: View = binding.root
 

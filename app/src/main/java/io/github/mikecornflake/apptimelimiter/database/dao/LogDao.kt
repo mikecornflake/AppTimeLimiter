@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
-import androidx.room.Update
+import androidx.room.Transaction
 import io.github.mikecornflake.apptimelimiter.database.entities.Log
 import kotlinx.coroutines.flow.Flow
 
@@ -13,18 +13,14 @@ interface LogDao {
     @Insert
     suspend fun insert(log: Log)
 
-    @Update
-    suspend fun update(log: Log)
+    @Query("SELECT * FROM log ORDER BY logId DESC")
+    fun getAllLogs(): Flow<List<Log>>
 
     @Delete
     suspend fun delete(log: Log)
 
-    @Query("SELECT * FROM log WHERE packageId = :packageId")
-    fun getLogsForPackage(packageId: Int): Flow<List<Log>>
-
-    @Query("SELECT * FROM log")
-    fun getAllLogs(): Flow<List<Log>>
-
-    @Query("DELETE FROM log WHERE startTime < :timestamp")
-    suspend fun deleteLogsOlderThan(timestamp: Long)
+    @Transaction
+    suspend fun insertLog(log: Log){
+        insert(log)
+    }
 }

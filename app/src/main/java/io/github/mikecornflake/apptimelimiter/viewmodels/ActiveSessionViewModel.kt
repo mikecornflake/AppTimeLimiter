@@ -15,20 +15,17 @@ class ActiveSessionViewModel(private val activeSessionDao: ActiveSessionDao) : V
         }
     }
 
-    fun update(activeSession: ActiveSession) {
-        viewModelScope.launch {
-            activeSessionDao.update(activeSession)
-        }
-    }
-
     fun delete(activeSession: ActiveSession) {
         viewModelScope.launch {
             activeSessionDao.delete(activeSession)
         }
     }
 
-    fun getActiveSessionsForPackage(packageId: Int): Flow<List<ActiveSession>> =
-        activeSessionDao.getActiveSessionsForPackage(packageId)
+    fun insertNewActiveSession(newActiveSession: ActiveSession, oldActiveSession: ActiveSession?){
+        viewModelScope.launch {
+            activeSessionDao.insertNewActiveSession(newActiveSession, oldActiveSession)
+        }
+    }
 
     fun getAllActiveSessions(): Flow<List<ActiveSession>> = activeSessionDao.getAllActiveSessions()
 }

@@ -22,16 +22,9 @@ class RulesFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val rulesViewModel =
-            ViewModelProvider(this).get(RulesViewModel::class.java)
-
         _binding = FragmentRulesBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textRules
-        rulesViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
-        }
         return root
     }
 

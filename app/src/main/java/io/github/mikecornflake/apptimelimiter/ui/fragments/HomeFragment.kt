@@ -24,8 +24,6 @@ class HomeFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    private val homeViewModel: HomeViewModel by viewModels()
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -37,34 +35,11 @@ class HomeFragment : Fragment() {
         val appEnabledButton: Button = binding.appEnabledButton
         val accessibilityStatusText: TextView = binding.accessibilityStatusText
 
-        //Call observeDataStore to watch for changes
-        homeViewModel.observeDataStore(requireContext())
-
-        appEnabledButton.setOnClickListener {
-            homeViewModel.toggleAppEnabled(requireContext())
-            //Call saveState to save to the datastore
-            homeViewModel.saveState(requireContext())
-
-            SettingsHelper.facebook_start_time=Date(0)
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                homeViewModel.uiState.collect { uiState ->
-                    // Update the UI based on the uiState
-                    appEnabledButton.setText(uiState.getApplicationEnabledStateAsText())
-                    accessibilityStatusText.setText(uiState.getAccessibilityServiceStateAsText())
-                }
-            }
-        }
-
         return root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        homeViewModel.updateAccessibilityServiceStatus(requireContext())
-        homeViewModel.loadAppEnabledState(requireContext())
     }
 
     override fun onDestroyView() {

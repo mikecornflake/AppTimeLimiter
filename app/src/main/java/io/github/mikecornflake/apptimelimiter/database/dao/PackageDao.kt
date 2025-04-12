@@ -4,9 +4,11 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import io.github.mikecornflake.apptimelimiter.database.entities.Package
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 
 @Dao
 interface PackageDao {
@@ -27,4 +29,15 @@ interface PackageDao {
 
     @Query("SELECT * FROM package WHERE packageName = :packageName")
     fun getPackage(packageName: String): Flow<Package>
+
+    @Transaction
+    suspend fun insertIfNotExist(packageItem: Package): Package? {
+        val existingPackage = getPackage(packageItem.packageName).firstOrNull()
+        return if (existingPackage == null) {
+            insert(packageItem)
+            getPackage(packageItem.packageName).firstOrNull()
+        } else {
+            existingPackage
+        }
+    }
 }
