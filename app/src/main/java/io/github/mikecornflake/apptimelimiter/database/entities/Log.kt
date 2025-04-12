@@ -18,8 +18,8 @@ import androidx.room.PrimaryKey
     ]
 )
 data class Log(
-    @PrimaryKey(autoGenerate = true) val logId: Int = 0,
-    val packageId: Int,
+    @PrimaryKey(autoGenerate = true) val logId: Long = 0,
+    val packageId: Long,
     val startTime: Long,
     val endTime: Long,
     val duration: Long = 0,

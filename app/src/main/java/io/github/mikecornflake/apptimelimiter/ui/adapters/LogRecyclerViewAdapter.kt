@@ -15,6 +15,9 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.time.*
+import kotlin.time.Duration.Companion.hours
+import io.github.mikecornflake.apptimelimiter.util.TimeHelper
 
 class LogRecyclerViewAdapter : RecyclerView.Adapter<LogRecyclerViewAdapter.LogViewHolder>() {
 
@@ -44,9 +47,12 @@ class LogRecyclerViewAdapter : RecyclerView.Adapter<LogRecyclerViewAdapter.LogVi
                 holder.packageNameTextView.text = packageName
             }
         }
-        holder.startTimeTextView.text = "Start: ${formatTimestamp(currentLog.startTime)}"
-        holder.endTimeTextView.text = "End: ${formatTimestamp(currentLog.endTime)}"
-        holder.durationTextView.text = "Duration: ${currentLog.duration}ms"
+        holder.startTimeTextView.text = "Start: ${TimeHelper.formatTimestamp(currentLog.startTime)}"
+        holder.endTimeTextView.text = "End: ${TimeHelper.formatTimestamp(currentLog.endTime)}"
+
+        val duration = currentLog.duration.toDuration(DurationUnit.MILLISECONDS)
+        val durationString = TimeHelper.formatDuration(duration)
+        holder.durationTextView.text = "Duration: $durationString"
     }
 
     override fun getItemCount(): Int = logs.size
@@ -54,11 +60,5 @@ class LogRecyclerViewAdapter : RecyclerView.Adapter<LogRecyclerViewAdapter.LogVi
     fun setLogs(logs: List<Log>) {
         this.logs = logs
         notifyDataSetChanged()
-    }
-
-    private fun formatTimestamp(timestamp: Long): String {
-        val date = Date(timestamp)
-        val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-        return format.format(date)
     }
 }

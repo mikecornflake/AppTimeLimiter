@@ -18,8 +18,8 @@ import androidx.room.PrimaryKey
     ]
 )
 data class RuleAllowedTime(
-    @PrimaryKey(autoGenerate = true) val allowedTimeId: Int = 0,
-    val ruleId: Int,
+    @PrimaryKey(autoGenerate = true) val allowedTimeId: Long = 0,
+    val ruleId: Long,
     val startTime: Long,
     val endTime: Long
 )

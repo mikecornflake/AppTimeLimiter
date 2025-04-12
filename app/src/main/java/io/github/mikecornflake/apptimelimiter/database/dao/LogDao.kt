@@ -13,11 +13,14 @@ interface LogDao {
     @Insert
     suspend fun insert(log: Log)
 
-    @Query("SELECT * FROM log ORDER BY logId DESC")
+    @Query("SELECT * FROM log WHERE duration>30000 ORDER BY logId DESC")
     fun getAllLogs(): Flow<List<Log>>
 
     @Delete
     suspend fun delete(log: Log)
+
+    @Query("DELETE FROM log WHERE startTime < :timestamp")
+    suspend fun deleteLogsOlderThan(timestamp: Long)
 
     @Transaction
     suspend fun insertLog(log: Log){

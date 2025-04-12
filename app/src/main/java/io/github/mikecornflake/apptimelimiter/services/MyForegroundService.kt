@@ -12,26 +12,31 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavDeepLinkBuilder
 import io.github.mikecornflake.apptimelimiter.R
+import io.github.mikecornflake.apptimelimiter.database.AppDatabase
 import io.github.mikecornflake.apptimelimiter.util.SettingsHelper
+import io.github.mikecornflake.apptimelimiter.util.TimeHelper
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import java.util.Date
-import java.util.concurrent.TimeUnit
-import android.widget.Toast
+import kotlinx.coroutines.withContext
 
 class MyForegroundService : Service() {
     companion object {
         private const val TAG = "AppTimeLimiter:MyForegroundService"
         private const val FACEBOOK_PACKAGE = "com.facebook.katana"
         var instance: MyForegroundService? = null
+        private lateinit var database: AppDatabase
     }
 
     private val CHANNEL_ID = "ForegroundServiceChannel"
@@ -57,6 +62,7 @@ class MyForegroundService : Service() {
             stopSelf()
         }
 
+        database = AppDatabase.getDatabase(applicationContext)
 
         // Create the notification channel (required for Android 8.0+)
         createNotificationChannel()
@@ -121,34 +127,51 @@ class MyForegroundService : Service() {
 
     // This is called by a Runnable every 30 seconds
     private fun doTimer() {
-        val app:String = SettingsHelper.active_application
-        var content:String
+        var content:String = "No app running"
 
-        if (app=="") content="Unknown active app" else content = app
+        CoroutineScope(Dispatchers.IO).launch {
+            var content = "No app running"
 
-        // 30-second notification update code goes here
-        if ((SettingsHelper.facebook_start_time.time!=0L) && (SettingsHelper.active_package == FACEBOOK_PACKAGE)) {
-            val now = Date()
-            val differenceInMillis = now.time - SettingsHelper.facebook_start_time.time
-            val ageInSeconds = TimeUnit.MILLISECONDS.toSeconds(differenceInMillis)
+            val existingSession = database.activeSessionDao().getAllActiveSessions().firstOrNull()?.firstOrNull()
 
-            content = "Facebook has been running for $ageInSeconds seconds"
+            existingSession?.let { session ->
+                val activePackage = database.packageDao().getPackage(session.packageId).firstOrNull()
+                val now = System.currentTimeMillis()
+                val duration = (now - session.startTime).toDuration(DurationUnit.MILLISECONDS)
+                val formattedDuration = TimeHelper.formatDuration(duration)
 
-            if ((ageInSeconds > 4*60) && (ageInSeconds < 5*60)) {
-                content = "Facebook will be closed shortly"
-
-                doToast(content)
+                content = "${activePackage?.name ?: "Unknown package"} ($formattedDuration)"
             }
 
-            if (ageInSeconds > 5*60) {
-                content = "Facebook has been running for 5 minutes and will be closed"
-
-                doToast(content)
-                doHomeButton()
+            // Update the notification on the main thread
+            withContext(Dispatchers.Main) {
+                setNotification(content)
             }
         }
 
-        setNotification(content)
+//        // 30-second notification update code goes here
+//        if ((SettingsHelper.facebook_start_time.time!=0L) && (SettingsHelper.active_package == FACEBOOK_PACKAGE)) {
+//            val now = Date()
+//            val differenceInMillis = now.time - SettingsHelper.facebook_start_time.time
+//            val ageInSeconds = TimeUnit.MILLISECONDS.toSeconds(differenceInMillis)
+//
+//            content = "Facebook has been running for $ageInSeconds seconds"
+//
+//            if ((ageInSeconds > 4*60) && (ageInSeconds < 5*60)) {
+//                content = "Facebook will be closed shortly"
+//
+//                doToast(content)
+//            }
+//
+//            if (ageInSeconds > 5*60) {
+//                content = "Facebook has been running for 5 minutes and will be closed"
+//
+//                doToast(content)
+//                doHomeButton()
+//            }
+//        }
+
+
     }
 
     private fun createNotificationChannel() {

@@ -28,7 +28,7 @@ class PackageViewModel(private val packageDao: PackageDao) : ViewModel() {
         }
     }
 
-    fun getPackage(packageId: Int): Flow<Package> = packageDao.getPackage(packageId)
+    fun getPackage(packageId: Long): Flow<Package> = packageDao.getPackage(packageId)
 
     fun getPackage(packageName: String): Flow<Package> = packageDao.getPackage(packageName)
 }

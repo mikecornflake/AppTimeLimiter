@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "package")
 data class Package(
-    @PrimaryKey(autoGenerate = true) val packageId: Int = 0,
+    @PrimaryKey(autoGenerate = true) val packageId: Long = 0,
     val packageName: String,
     val name: String,
     val icon: String? = null // Optional icon

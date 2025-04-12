@@ -25,7 +25,7 @@ interface PackageDao {
     fun getAllPackages(): Flow<List<Package>>
 
     @Query("SELECT * FROM package WHERE packageId = :packageId")
-    fun getPackage(packageId: Int): Flow<Package>
+    fun getPackage(packageId: Long): Flow<Package>
 
     @Query("SELECT * FROM package WHERE packageName = :packageName")
     fun getPackage(packageName: String): Flow<Package>

@@ -20,6 +20,7 @@
         \nThis also needs to be enabled before other applications can be monitored.
         \nClick on the <b>More</b> button at the bottom of the screen</string>
     <string name="usage_stats_explanation">TODO: Find out what this is</string>
+    <string name="clear_old_logs">Clear old logs</string>
 
 
 </resources>

@@ -18,8 +18,8 @@ import androidx.room.PrimaryKey
     ]
 )
 data class ActiveSession(
-    @PrimaryKey(autoGenerate = true) val sessionId: Int = 0,
-    val packageId: Int,
+    @PrimaryKey(autoGenerate = true) val sessionId: Long = 0,
+    val packageId: Long,
     val startTime: Long,
     val endTime:Long? = null,
     val overtime: Long = 0

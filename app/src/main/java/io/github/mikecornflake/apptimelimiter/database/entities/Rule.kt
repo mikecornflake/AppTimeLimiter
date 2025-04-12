@@ -18,8 +18,8 @@ import androidx.room.PrimaryKey
     ]
 )
 data class Rule(
-    @PrimaryKey(autoGenerate = true) val ruleId: Int = 0,
-    val packageId: Int,
+    @PrimaryKey(autoGenerate = true) val ruleId: Long = 0,
+    val packageId: Long,
     val maxDailyDuration: Long? = null,
     val maxSessionDuration: Long? = null,
     val maxDailyDurationActive: Boolean = false,
